@@ -6,6 +6,7 @@ import base64
 import json
 import six
 import datetime
+import codecs
 
 class Signature:
 	
@@ -21,8 +22,13 @@ class Signature:
 		data = self.api_key + self.client_request_id + self.timestamp
 		if payload:
 			data += json.dumps(self.sanitize_for_serialization(payload))
-		h = hmac.new(self.api_secret, data, hashlib.sha256).hexdigest()
-		return base64.b64encode(h)
+			
+		encoded_api_secret = codecs.encode(self.api_secret)
+		encoded_data = codecs.encode(data)
+		hex_digest = hmac.new(encoded_api_secret, encoded_data, hashlib.sha256).hexdigest()
+		encoded_hex_digest = codecs.encode(hex_digest)
+		
+		return base64.b64encode(encoded_hex_digest)
 
 	def sanitize_for_serialization(self, obj):
 		if obj is None:
